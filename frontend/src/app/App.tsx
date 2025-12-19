@@ -3,26 +3,26 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useState, useCallback } from 'react'
 import {
   Dialog,
-  DialogSurface,
   DialogBody,
+  DialogSurface,
   Spinner,
   Text,
   makeStyles,
   tokens,
 } from '@fluentui/react-components'
+import { useCallback, useState } from 'react'
+import { AssessmentPanel } from '../components/AssessmentPanel'
+import { ChatPanel } from '../components/ChatPanel'
 import { ScenarioList } from '../components/ScenarioList'
 import { VideoPanel } from '../components/VideoPanel'
-import { ChatPanel } from '../components/ChatPanel'
-import { AssessmentPanel } from '../components/AssessmentPanel'
-import { useScenarios } from '../hooks/useScenarios'
-import { useRealtime } from '../hooks/useRealtime'
-import { useWebRTC } from '../hooks/useWebRTC'
-import { useRecorder } from '../hooks/useRecorder'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
-import { api } from '../services/api'
+import { useRealtime } from '../hooks/useRealtime'
+import { useRecorder } from '../hooks/useRecorder'
+import { useScenarios } from '../hooks/useScenarios'
+import { useWebRTC } from '../hooks/useWebRTC'
+import { api, parseAvatarValue } from '../services/api'
 import { Assessment } from '../types'
 
 const useStyles = makeStyles({
@@ -66,8 +66,18 @@ export default function App() {
   const [assessment, setAssessment] = useState<Assessment | null>(null)
   const [selectedScenarioData, setSelectedScenarioData] = useState<any>(null)
 
-  const { scenarios, selectedScenario, setSelectedScenario, loading } =
-    useScenarios()
+  const {
+    scenarios,
+    serverScenarios,
+    customScenarios,
+    selectedScenario,
+    setSelectedScenario,
+    loading,
+    getCustomScenario,
+    addCustomScenario,
+    updateCustomScenario,
+    deleteCustomScenario,
+  } = useScenarios()
   const { playAudio } = useAudioPlayer()
   const activeScenario =
     selectedScenarioData ||
@@ -129,11 +139,23 @@ export default function App() {
   const { recording, toggleRecording, getAudioRecording } =
     useRecorder(sendAudioChunk)
 
-  const handleStart = async () => {
+  const handleStart = async (avatarValue: string) => {
     if (!selectedScenario) return
 
     try {
-      const { agent_id } = await api.createAgent(selectedScenario)
+      const avatarConfig = parseAvatarValue(avatarValue)
+      const customScenario = getCustomScenario(selectedScenario)
+
+      const { agent_id } = customScenario
+        ? await api.createAgentWithCustomScenario(
+            selectedScenario,
+            customScenario.name,
+            customScenario.description,
+            customScenario.scenarioData,
+            avatarConfig
+          )
+        : await api.createAgent(selectedScenario, avatarConfig)
+
       setCurrentAgent(agent_id)
       setShowSetup(false)
     } catch (error) {
@@ -188,11 +210,15 @@ export default function App() {
               <Spinner label="Loading scenarios..." />
             ) : (
               <ScenarioList
-                scenarios={scenarios}
+                scenarios={serverScenarios}
+                customScenarios={customScenarios}
                 selectedScenario={selectedScenario}
                 onSelect={setSelectedScenario}
                 onStart={handleStart}
                 onScenarioGenerated={handleScenarioGenerated}
+                onAddCustomScenario={addCustomScenario}
+                onUpdateCustomScenario={updateCustomScenario}
+                onDeleteCustomScenario={deleteCustomScenario}
               />
             )}
           </DialogBody>

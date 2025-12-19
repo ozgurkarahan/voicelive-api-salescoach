@@ -9,6 +9,18 @@ export interface Scenario {
   description: string
   is_graph_scenario?: boolean
   generated_from_graph?: boolean
+  is_custom?: boolean
+}
+
+export interface CustomScenarioData {
+  systemPrompt: string
+}
+
+export interface CustomScenario extends Scenario {
+  is_custom: true
+  scenarioData: CustomScenarioData
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Message {
@@ -51,11 +63,20 @@ export interface Assessment {
   }
 }
 
-export interface AgentConfig {
-  agent_id: string
-  scenario_id: string
+export interface AvatarOption {
+  value: string
+  label: string
+  isPhotoAvatar: boolean
 }
-export interface AgentConfig {
-  agent_id: string
-  scenario_id: string
-}
+
+export const AVATAR_OPTIONS: AvatarOption[] = [
+  {
+    value: 'lisa-casual-sitting',
+    label: 'Lisa (Casual Sitting)',
+    isPhotoAvatar: false,
+  },
+  { value: 'riya', label: 'Riya (Photo)', isPhotoAvatar: true },
+  { value: 'simone', label: 'Simone (Photo)', isPhotoAvatar: true },
+]
+
+export const DEFAULT_AVATAR = 'lisa-casual-sitting'
