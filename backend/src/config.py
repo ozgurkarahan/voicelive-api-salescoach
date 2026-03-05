@@ -53,6 +53,7 @@ class Config:
             "azure_speech_key": os.getenv("AZURE_SPEECH_KEY", ""),
             "azure_speech_region": os.getenv("AZURE_SPEECH_REGION", DEFAULT_REGION),
             "azure_speech_language": os.getenv("AZURE_SPEECH_LANGUAGE", DEFAULT_SPEECH_LANGUAGE),
+            "azure_speech_resource_name": os.getenv("AZURE_SPEECH_RESOURCE_NAME", ""),
             "api_version": DEFAULT_API_VERSION,
             # NEW ADDITIONS
             "azure_input_transcription_model": os.getenv(
